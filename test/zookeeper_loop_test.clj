@@ -24,7 +24,13 @@
 (use-fixtures :once zookeeper-fixture)
 
 
-(deftest simple-test
+(deftest blocking-test
   (let [client (client-loop "localhost:12181")]
     (zk/create-all @client "foo/bar")
+    (close-loop client)))
+
+
+(deftest timeout-test
+  (let [client (client-loop "localhost:12181")]
+    (is (= :timeout (deref client 0 :timeout)))
     (close-loop client)))

@@ -11,25 +11,42 @@
   (:import [org.apache.zookeeper ZooKeeper
             ;; KeeperException KeeperException$SessionExpiredException
             ;; KeeperException$ConnectionLossException
-            ]))
+            ]
+           [java.util.concurrent CountDownLatch TimeUnit]))
+
+
+(defn- deref-connected
+  [{:keys [client-atom] :as client-loop} ^CountDownLatch latch]
+  (loop []
+    (if (or (nil? latch) (= (.getCount latch) 1))
+      (let [client (deref client-atom)]
+        (case (zk/state client)
+          :CONNECTED client
+          :CONNECTING (do (trace "Thread" (Thread/currentThread)
+                                 "in ClientLoop/deref while client is connecting.")
+                          (locking client-loop (.wait client-loop 1000))
+                          (recur))
+          :ASSOCIATING (do (trace "Thread" (Thread/currentThread)
+                                  "in ClientLoop/deref while client is associating.")
+                           (locking client-loop (.wait client-loop 1000))
+                           (recur))
+          :CLOSED client
+          :AUTH_FAILED client))
+      (debug "Deref interrupted by timeout."))))
 
 
 (defrecord ClientLoop [client-atom connect-str timeout-msec watcher]
   clojure.lang.IDeref
   (deref [this]
-    (let [client (deref (:client-atom this))]
-      (case (zk/state client)
-        :CONNECTED client
-        :CONNECTING (do (trace "Thread" (Thread/currentThread)
-                               "in ClientLoop/deref while client is connecting.")
-                        (locking this (.wait this 1000))
-                        (recur))
-        :ASSOCIATING (do (trace "Thread" (Thread/currentThread)
-                                "in ClientLoop/deref while client is associating.")
-                         (locking this (.wait this 1000))
-                         (recur))
-        :CLOSED client
-        :AUTH_FAILED client))))
+    (deref-connected this nil))
+
+  clojure.lang.IBlockingDeref
+  (deref [this ms val]
+    (let [latch (CountDownLatch. 1)
+          fut (future (deref-connected this latch))
+          result (deref fut ms val)]
+      (.countDown latch)
+      result)))
 
 
 (defn- handle-global
