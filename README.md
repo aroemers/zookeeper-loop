@@ -22,6 +22,10 @@ Now that you have a client-loop, one can use it as follows:
 
 ;; Just deref the client-loop, and a connected instance will be returned.
 (zk/create-all @client "/foo/bar")
+
+;; A client may be in a 'connecting' state forever, so a more sensible approach 
+;; cound be to use timeouts.
+(zk/data (deref client 2000 ::fail) "/foo/bar")
 ```
 
 A connection-related exception might still be thrown in above statement, for instance when the client is closed by you, authentication failed, or the connection changed between the deref and the actual execution of the expression. Dealing with these cases is the responsibility of the user. One can of course easily wrap these statements with more sophisticated retry logic.
