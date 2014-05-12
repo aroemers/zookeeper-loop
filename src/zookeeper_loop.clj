@@ -24,11 +24,11 @@
           :CONNECTED client
           :CONNECTING (do (trace "Thread" (Thread/currentThread)
                                  "in ClientLoop/deref while client is connecting.")
-                          (locking client-loop (.wait client-loop 1000))
+                          (locking client-loop (.wait ^Object client-loop 1000))
                           (recur))
           :ASSOCIATING (do (trace "Thread" (Thread/currentThread)
                                   "in ClientLoop/deref while client is associating.")
-                           (locking client-loop (.wait client-loop 1000))
+                           (locking client-loop (.wait ^Object client-loop 1000))
                            (recur))
           :CLOSED client
           :AUTH_FAILED client))
@@ -57,13 +57,13 @@
     (locking client-loop
       (case keeper-state
         :SyncConnected (do (debug "Zookeeper client connected.")
-                           (.notifyAll client-loop))
+                           (.notifyAll ^Object client-loop))
         :Disconnected (do (debug "Zookeeper client disconnected.")
-                          (.notifyAll client-loop))
+                          (.notifyAll ^Object client-loop))
         :Expired (let [watcher (zi/make-watcher (partial handle-global client-loop))
                        old-client @client-atom]
                    (reset! client-atom (ZooKeeper. connect-str timeout-msec watcher))
-                   (.notifyAll client-loop)
+                   (.notifyAll ^Object client-loop)
                    (when old-client
                      (debug "Zookeeper client expired, created new one, closing old one.")
                      (zk/close old-client))))))

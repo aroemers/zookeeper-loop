@@ -21,4 +21,5 @@
                                 [:configuration
                                  [:temporaryOutputDirectory "true"]
                                  [:sourceDirectories [:sourceDirectory "src"]]]
-                                [:goals [:goal "compile"]]])}]])
+                                [:goals [:goal "compile"]]])}]]
+  :global-vars {*warn-on-reflection* true})
