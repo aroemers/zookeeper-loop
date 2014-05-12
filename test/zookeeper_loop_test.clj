@@ -34,3 +34,9 @@
   (let [client (client-loop "localhost:12181")]
     (is (= :timeout (deref client 0 :timeout)))
     (close-loop client)))
+
+
+(deftest non-blocking-test
+  (let [client (client-loop "localhost:12181")]
+    (is (not (nil? (deref client 10000 :timeout))))
+    (close-loop client)))
