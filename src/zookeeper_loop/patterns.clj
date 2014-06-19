@@ -30,7 +30,8 @@
         (if (= ::retry result)
           (recur (deref client-loop timeout-msec ::disconnected))
           result))
-      (ex-info "Could not connect to Zookeeper for ensure-path." {:client @(:client-atom client)}))))
+      (throw (ex-info "Could not connect to Zookeeper for ensure-path."
+                      {:client @(:client-atom client)})))))
 
 
 (defn swap!
@@ -56,4 +57,5 @@
         (if (= ::retry new-data)
           (recur (deref client-loop timeout-msec ::disconnected))
           new-data))
-      (ex-info "Could not connect to Zookeeper for swap." {:client @(:client-atom client)}))))
+      (throw (ex-info "Could not connect to Zookeeper for swap."
+                      {:client @(:client-atom client)})))))
