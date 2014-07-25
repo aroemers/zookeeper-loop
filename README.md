@@ -12,7 +12,7 @@ Create a client loop like so:
 (def client (client-loop "localhost:2181"))
 ```
 
-One can pass options to the client-loop as one would to `zookeeper/connect` of [zookeeper-clj](#). One extra option is `:client-atom`. This holds the currently used `Zookeeper` object. Use at your own risk.
+One can pass options to the client-loop as one would to `zookeeper/connect` of [zookeeper-clj](#). One extra option is `:client-atom`. This will then be used to hold the currently used `Zookeeper` instance. Use at your own risk.
 
 Now that you have a client-loop, one can use it as follows:
 
@@ -23,7 +23,7 @@ Now that you have a client-loop, one can use it as follows:
 ;; Just deref the client-loop, and a connected instance will be returned.
 (zk/create-all @client "/foo/bar")
 
-;; A client may be in a 'connecting' state forever, so a more sensible approach 
+;; A client may be in a 'connecting' state forever, so a more sensible approach
 ;; cound be to use timeouts.
 (zk/data (deref client 2000 ::fail) "/foo/bar")
 ```

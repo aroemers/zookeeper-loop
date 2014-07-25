@@ -2,13 +2,12 @@
 ;; License, v. 2.0. If a copy of the MPL was not distributed with this
 ;; file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-(defproject zookeeper-loop "0.1.0-SNAPSHOT"
+(defproject functionalbytes/zookeeper-loop "0.1.0-SNAPSHOT"
   :description "An automatically reconnecting Zookeeper client."
-  :url "https://github.com/Shared"
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [zookeeper-clj "0.9.1"]
                  [com.taoensso/timbre "3.2.1"]]
-  :profiles {;; Stupid profile needed, otherwise mvn won't include zookeeper in its compile
+  :profiles {;; Silly profile needed, otherwise mvn won't include zookeeper in its compile
              ;; phase dependencies. To test, call `lein with-profile +curator test`.
              :curator {:dependencies [[org.apache.zookeeper/zookeeper "3.4.5" :exclusions
                                        [com.sun.jmx/jmxri com.sun.jdmk/jmxtools javax.jms/jms junit]]
