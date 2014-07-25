@@ -6,7 +6,7 @@ A Clojure library designed to have an automatically reconnecting Zookeeper clien
 
 Create a client loop like so:
 
-```
+```clojure
 (require '[zookeeper-loop :refer (client-loop close-loop)])
 
 (def client (client-loop "localhost:2181"))
@@ -16,7 +16,7 @@ One can pass options to the client-loop as one would to `zookeeper/connect` of [
 
 Now that you have a client-loop, one can use it as follows:
 
-```
+```clojure
 ;; from zookeeper-clj
 (require '[zookeeper :as zk])
 
@@ -32,7 +32,7 @@ A connection-related exception might still be thrown in above statement, for ins
 
 To close the client, and stop the loop:
 
-```
+```clojure
 (close-loop client)
 ```
 
