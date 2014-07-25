@@ -36,6 +36,20 @@ To close the client, and stop the loop:
 (close-loop client)
 ```
 
+
+## Patterns
+
+The `zookeeper-loop.patterns` namespace contains some frequently used Zookeeper patterns. These patterns use a client-loop, so they are implemented in a more robust and failure-friendly way. Currently the following patterns are available:
+
+### ensure-path
+
+Ensures the given path exists. When the connection to Zookeeper cannot be (re)established within timeout-msec while processing the path, an exception is thrown. Returns the path when created, or nil when it already exists
+
+### swap!
+
+Applies the given function atomically (a compare-and-set loop) to the data of the given path, together with the args. When the connection to Zookeeper cannot be (re)established within timeout-msec while processing the swap, an exception is thrown. Requires `*deserializer*` and `*serializer*` to be bound to functions taking a byte-array or a value respectively. Returns the new value.
+
+
 ## TODO
 
 * Have more influence on how to deal with expired clients when `deref`ing?
