@@ -28,7 +28,7 @@ Now that you have a client-loop, one can use it as follows:
 (zk/data (deref client 2000 ::fail) "/foo/bar")
 ```
 
-A connection-related exception might still be thrown in above statement, for instance when the client is closed by you, authentication failed, or the connection changed between the deref and the actual execution of the expression. Dealing with these cases is the responsibility of the user. One can of course easily wrap these statements with more sophisticated retry logic.
+A connection-related exception might still be thrown in above statement, for instance when the client is closed by you, authentication failed, or the connection changed between the deref and the actual execution of the expression. Dealing with these cases is the responsibility of the user. One can of course easily wrap these statements with more sophisticated retry logic (e.g. the patterns below).
 
 To close the client, and stop the loop:
 
@@ -39,15 +39,34 @@ To close the client, and stop the loop:
 
 ## Patterns
 
-The `zookeeper-loop.patterns` namespace contains some frequently used Zookeeper patterns. These patterns use a client-loop, so they are implemented in a more robust and failure-friendly way. Currently the following patterns are available:
+The `zookeeper-loop.patterns` namespace contains some frequently used Zookeeper patterns. These patterns use a client-loop, so they are failure-friendly. Currently the following patterns are available:
+
+### retry
+
+Tries to execute the given function on a connected Zookeeper client as the first argument. When the connection to Zookeeper cannot be (re)established within timeout (msec) while processing the function, an exception is thrown. Note that in rare cases the `retry` pattern may take longer than the given timeout, when a newly established connection gets disconnected right away, i.e. just before the given function can be executed. Returns the value of the evaluated function. For example:
+
+```clojure
+(retry client 1000 zk/delete "/path/to/delete")
+```
 
 ### ensure-path
 
-Ensures the given path exists. When the connection to Zookeeper cannot be (re)established within timeout-msec while processing the path, an exception is thrown. Returns the path when created, or nil when it already exists
+Ensures the given path exists, based on the `retry` pattern above. Returns the path when created, or nil when it already exists. For example:
+
+```clojure
+(ensure-path client 1000 "/path/to/check/or/create")
+```
 
 ### swap!
 
-Applies the given function atomically (a compare-and-set loop) to the data of the given path, together with the args. When the connection to Zookeeper cannot be (re)established within timeout-msec while processing the swap, an exception is thrown. Requires `*deserializer*` and `*serializer*` to be bound to functions taking a byte-array or a value respectively. Returns the new value.
+Applies the given function atomically (a compare-and-set loop) to the data of the given path, together with the args. This is based on the `retry` pattern above. Requires `*deserializer*` and `*serializer*` to be bound to functions taking a byte-array and a value respectively. Returns the new value. For example:
+
+```clojure
+;; Atomically add an exclamation to a String.
+(binding [*deserializer* #(String. % "UTF-8")
+          *serializer* #(.getBytes % "UTF-8")]
+  (swap! client 1000 "/path/to/a/string/node" str "!"))
+```
 
 
 ## TODO
