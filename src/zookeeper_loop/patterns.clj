@@ -39,7 +39,7 @@
   path, an exception is thrown. Returns the path when created, or nil
   when it already exists"
   [client-loop timeout-msec path persistent?]
-  (retry client-loop timeout-mesec
+  (retry client-loop timeout-msec
          (fn [client]
            (when-not (zk/exists client path)
              (zk/create-all client path :persistent? persistent?)))))
@@ -51,7 +51,7 @@
   (re)established within timeout-msec while processing the swap, an
   exception is thrown. Requires *deserializer* and *serializer* to be
   bound to functions. Returns the new value."
-  [client-loop timeout-msec path fn & args]
+  [client-loop timeout-msec path f & args]
   (assert (fn? *deserializer*) "swap! needs *deserializer* to be bound to a function.")
   (assert (fn? *serializer*) "swap! needs *serializer* to be bound to a function.")
   (loop []
@@ -60,7 +60,7 @@
                                  (let [data (zk/data client path)
                                        deserialized (when-let [bytes (:data data)]
                                                       (*deserializer* bytes))
-                                       new-data (apply fn deserialized args)
+                                       new-data (apply f deserialized args)
                                        version (-> data :stat :version)]
                                    (zk/set-data client path (*serializer* new-data) version)
                                    new-data)))

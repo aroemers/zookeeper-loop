@@ -72,3 +72,4 @@ Applies the given function atomically (a compare-and-set loop) to the data of th
 ## TODO
 
 * Have more influence on how to deal with expired clients when `deref`ing?
+* Have *deserializer* and *serializer* default to `identity`?
