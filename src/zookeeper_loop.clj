@@ -12,19 +12,21 @@
 
 (defn- deref-connected
   [{:keys [client-atom] :as client-loop} ^CountDownLatch latch]
-  (loop []
-    (if (or (nil? latch) (= (.getCount latch) 1))
+  (loop [first? true]
+    (if (or (nil? latch) (> (.getCount latch) 0))
       (let [client (deref client-atom)]
         (case (zk/state client)
           :CONNECTED client
           :CONNECTING (do (trace "Thread" (Thread/currentThread)
                                  "in ClientLoop/deref while client is connecting.")
                           (locking client-loop (.wait ^Object client-loop 1000))
-                          (recur))
+                          (when first? (.countDown latch))
+                          (recur false))
           :ASSOCIATING (do (trace "Thread" (Thread/currentThread)
                                   "in ClientLoop/deref while client is associating.")
                            (locking client-loop (.wait ^Object client-loop 1000))
-                           (recur))
+                           (when first? (.countDown latch))
+                           (recur false))
           :CLOSED client
           :AUTH_FAILED client))
       (debug "Deref interrupted by timeout."))))
@@ -37,11 +39,12 @@
 
   clojure.lang.IBlockingDeref
   (deref [this ms val]
-    (let [latch (CountDownLatch. 1)
-          fut (future (deref-connected this latch))
-          result (deref fut ms val)]
-      (.countDown latch)
-      result)))
+    (let [latch (CountDownLatch. 2)]
+      (future (locking this (.wait ^Object this ms))
+              (.countDown latch))
+      (let [result (deref-connected this latch)]
+        (.notifyAll ^Object this)
+        (or result val)))))
 
 
 (defn- handle-global
