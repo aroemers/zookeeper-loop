@@ -43,7 +43,7 @@
       (future (locking this (.wait ^Object this ms))
               (.countDown latch))
       (let [result (deref-connected this latch)]
-        (.notifyAll ^Object this)
+        (locking this (.notifyAll ^Object this))
         (or result val)))))
 
 
