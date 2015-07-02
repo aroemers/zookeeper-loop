@@ -5,7 +5,7 @@
 (defproject zookeeper-loop "0.1.0-SNAPSHOT"
   :description "An automatically reconnecting Zookeeper client."
   :url "https://github.com/Shared"
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
                  [zookeeper-clj "0.9.1"]
                  [com.taoensso/timbre "3.2.1"]]
   :profiles {;; Stupid profile needed, otherwise mvn won't include zookeeper in its compile
