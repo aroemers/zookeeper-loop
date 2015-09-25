@@ -14,19 +14,17 @@
   [{:keys [client-atom] :as client-loop} ^CountDownLatch latch]
   (loop [first? true]
     (if (or (nil? latch) (> (.getCount latch) 0))
-      (let [client (deref client-atom)]
-        (case (zk/state client)
+      (let [client (deref client-atom)
+            state (zk/state client)]
+        (case state
           :CONNECTED client
-          :CONNECTING (do (trace "Thread" (Thread/currentThread)
-                                 "in ClientLoop/deref while client is connecting.")
-                          (locking client-loop (.wait ^Object client-loop 1000))
-                          (when first? (.countDown latch))
-                          (recur false))
-          :ASSOCIATING (do (trace "Thread" (Thread/currentThread)
-                                  "in ClientLoop/deref while client is associating.")
-                           (locking client-loop (.wait ^Object client-loop 1000))
-                           (when first? (.countDown latch))
-                           (recur false))
+          (:CONNECTING :ASSOCIATING) (do (trace "Thread" (Thread/currentThread)
+                                                "in ClientLoop/deref while client is" state)
+                                         (locking client-loop
+                                           (.wait ^Object client-loop 1000))
+                                         (when (and first? latch)
+                                           (.countDown latch))
+                                         (recur false))
           :CLOSED client
           :AUTH_FAILED client))
       (debug "Deref interrupted by timeout."))))
