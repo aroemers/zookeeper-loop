@@ -42,7 +42,12 @@
               (.countDown latch))
       (let [result (deref-connected this latch)]
         (locking this (.notifyAll ^Object this))
-        (or result val)))))
+        (or result val))))
+
+  java.io.Closeable
+  (close [this]
+    (info "Closing Zookeeper client and stopping loop.")
+    (zk/close @client-atom)))
 
 
 (defn- handle-global
@@ -77,6 +82,5 @@
 
 
 (defn close-loop
-  [{:keys [client-atom] :as client-loop}]
-  (info "Closing Zookeeper client and stopping loop.")
-  (zk/close @client-atom))
+  [^java.io.Closeable client-loop]
+  (.close client-loop))
