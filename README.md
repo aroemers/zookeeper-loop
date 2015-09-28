@@ -1,8 +1,14 @@
 # zookeeper-loop
 
-A Clojure library designed to have an automatically reconnecting Zookeeper client, for use with for example [zookeeper-clj](#).
+A Clojure library designed to have an automatically reconnecting Zookeeper client, for use with for example [zookeeper-clj](https://github.com/liebke/zookeeper-clj).
 
 ## Usage
+
+Add the following dependency to your project:
+
+```clojure
+[functionalbytes/zookeeper-loop "0.1.0"]
+```
 
 Create a client loop like so:
 
